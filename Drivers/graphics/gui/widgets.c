@@ -160,7 +160,7 @@ void default_widgetUpdate(widget_t *widget) {
 				break;
 			case field_uinteger32:
 				val_ui32 = *((uint32_t*)(data));
-				sprintf(widget->displayString,"%d", val_ui32);
+				sprintf(widget->displayString,"%ld", val_ui32);
 				if(dis->number_of_dec) {
 					insertDot(widget->displayString, dis->number_of_dec);
 				}

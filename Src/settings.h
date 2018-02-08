@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include "stm32f1xx_hal_flash.h"
 
-#define SETTINGSVERSION 1. /*Change this if you change the struct below to prevent people getting out of sync*/
+#define SETTINGSVERSION 1 /*Change this if you change the struct below to prevent people getting out of sync*/
 
 typedef struct channel_t {
 	uint32_t frequency;
@@ -26,6 +26,12 @@ struct systemSettings {
 	uint8_t used_channels;
 	uint16_t rssi_min;
 	uint16_t rssi_max;
+	uint16_t rssi_min2;
+	uint16_t rssi_max2;
+	uint32_t start_scan_freq;
+	uint32_t end_scan_freq;
+	uint8_t diversity;
+	uint32_t last_used_frequency;
 } systemSettings;
 
 void saveSettings();

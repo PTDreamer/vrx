@@ -32,7 +32,7 @@ static uint16_t m_temp;
 static uint32_t m_ltemp;
 static void set_frequency(uint32_t *value) {
 	m_ltemp = *value;
-	setCurrentFrequencyX10(m_ltemp);
+	setCurrentFrequency(m_ltemp);
 }
 
 static void * get_frequency() {
@@ -106,12 +106,29 @@ int processInput_NameFreq(widget_t*w, RE_Rotation_t r, RE_State_t *s) {
 		return default_widgetProcessInput(w, r, s);
 }
 void main_screenDraw(screen_t *scr) {
-	UG_FillFrame(0,45, 127, 60,C_BLACK);
-	UG_DrawFrame(0,45, 127, 60,C_WHITE);
-	uint8_t val = getRSSI() * 127 / 100;
+	uint8_t act_tun = getActiveTunner();
+	if(!act_tun) {
+		UG_DrawLine(0,62,127,62,C_BLACK);
+		UG_DrawLine(0,52,127,52,C_WHITE);
+	}
+	else {
+		UG_DrawLine(0,62,127,62,C_WHITE);
+		UG_DrawLine(0,52,127,52,C_BLACK);
+	}
+	UG_FillFrame(0,55, 127, 60,C_BLACK);
+	UG_DrawFrame(0,55, 127, 60,C_WHITE);
+	uint8_t val = getRSSI2() * 127 / 100;
 	if(val > 127)
 		val = 127;
-	UG_FillFrame(0,45, val, 60, C_WHITE);
+	UG_FillFrame(0,55, val, 60, C_WHITE);
+
+	UG_FillFrame(0,45, 127, 50,C_BLACK);
+	UG_DrawFrame(0,45, 127, 50,C_WHITE);
+	val = getRSSI() * 127 / 100;
+	if(val > 127)
+		val = 127;
+	UG_FillFrame(0,45, val, 50, C_WHITE);
+
 	default_screenDraw(scr);
 }
 void main_screen_setup(screen_t *scr) {
@@ -201,7 +218,7 @@ void main_screen_setup(screen_t *scr) {
 	widget->multiOptionWidget.editable.selectable.tab = 2;
 	widget->reservedChars = 5;
 	widget->multiOptionWidget.options = presets;
-	widget->multiOptionWidget.numberOfOptions = systemSettings.used_channels;;
+	widget->multiOptionWidget.numberOfOptions = systemSettings.used_channels;
 	widget->multiOptionWidget.currentOption = 0;
 	widget->multiOptionWidget.defaultOption = 0;
 	widget->enabled = 1;

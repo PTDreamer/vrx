@@ -7,7 +7,6 @@
 
 #include "gui.h"
 #include "main_screen.h"
-#include "debug_screen.h"
 #include "splash.h"
 #include "settings_screen.h"
 #include "rssical.h"
@@ -17,11 +16,9 @@ void guiInit() {
 	splash_setup(scr);
 	scr = oled_addScreen(screen_main);
 	main_screen_setup(scr);
-	scr = oled_addScreen(screen_debug);
-	debug_screen_setup(scr);
 	scr = oled_addScreen(screen_settings);
 	settings_screen_setup(scr);
-	scr = oled_addScreen(screen_edit_scan);
+	scr = oled_addScreen(screen_edit_rssi);
 	calibration_screen_setup(scr);
 }
 

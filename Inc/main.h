@@ -45,7 +45,12 @@
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
-
+#define TUN0_SELECT GPIO_PIN_12
+#define TUN1_SELECT GPIO_PIN_13
+#define TUN0_SELECT_Port GPIOB
+#define TUN1_SELECT_Port GPIOB
+#define LED_Pin GPIO_PIN_13
+#define LED_GPIO_Port GPIOC
 #define GUN_TEMP_Pin GPIO_PIN_1
 #define GUN_TEMP_GPIO_Port GPIOA
 #define VIN_Pin GPIO_PIN_3

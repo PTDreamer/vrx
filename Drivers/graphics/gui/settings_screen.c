@@ -15,10 +15,13 @@ static widget_t *combo = NULL;
 
 static uint16_t CONTRAST = 0;
 static char str[20]="aaa";
+static uint32_t SCAN_START, SCAN_END;
 static widget_t *tipCombo = NULL;
 static widget_t *delTipButton = NULL;
 static comboBox_item_t *addNewPresetComboItem = NULL;
 static uint32_t frequency = 1280000;
+static uint16_t diversity;
+static char * onOff[] = {"OFF", "ON"};
 
 static void edit_preset_screen_init(screen_t *scr) {
 	if(strcmp(tipCombo->comboBoxWidget.currentItem->text, "ADD NEW") == 0) {
@@ -47,7 +50,8 @@ static void edit_presets_list_screen_init(screen_t *scr) {
 		}
 		else
 			i->enabled = 0;
-		i = i->next_item;
+		i = i->next_item;setContrast(systemSettings.contrast);
+
 	}
 	tipCombo->comboBoxWidget.currentItem = tipCombo->comboBoxWidget.items;
 	tipCombo->comboBoxWidget.currentScroll = 0;
@@ -55,6 +59,28 @@ static void edit_presets_list_screen_init(screen_t *scr) {
 		addNewPresetComboItem->enabled = 0;
 	}
 }
+
+static void *getMinScan() {
+	return &SCAN_START;
+}
+static void setMinScan(uint32_t *val) {
+	SCAN_START = *val;
+}
+
+static void *getDiversity() {
+	return &diversity;
+}
+static void setDiversity(uint8_t *val) {
+	diversity = *val;
+}
+
+static void *getMaxScan() {
+	return &SCAN_END;
+}
+static void setMaxScan(uint32_t *val) {
+	SCAN_END = *val;
+}
+
 static void *getPresetNameStr() {
 	return str;
 }
@@ -117,6 +143,28 @@ static int cancelContrast(widget_t *w) {
 	setContrast(systemSettings.contrast);
 	return screen_main;
 }
+static int saveScan(widget_t *w) {
+	systemSettings.start_scan_freq = SCAN_START;
+	systemSettings.end_scan_freq = SCAN_END;
+	saveSettings();
+	return screen_main;
+}
+static int cancelScan(widget_t *w) {
+	SCAN_START = systemSettings.start_scan_freq;
+	SCAN_END = systemSettings.end_scan_freq;
+	return screen_main;
+}
+
+static int saveDiversity(widget_t *w) {
+	systemSettings.diversity = diversity;
+	saveSettings();
+	return screen_main;
+}
+static int cancelDiversity(widget_t *w) {
+	diversity = systemSettings.diversity;
+	return screen_main;
+}
+
 ////
 static void settings_screen_init(screen_t *scr) {
 	UG_FontSetHSpace(0);
@@ -164,6 +212,8 @@ void settings_screen_setup(screen_t *scr) {
 	widget->font_size = &FONT_6X8;
 	comboAddItem(widget, "PRESETS", screen_edit_presets);
 	comboAddItem(widget, "SCAN", screen_edit_scan);
+	comboAddItem(widget, "RSSI", screen_edit_rssi);
+	comboAddItem(widget, "DIVERSITY", screen_edit_diversity);
 	comboAddItem(widget, "SCREEN", screen_edit_contrast);
 	comboAddItem(widget, "EXIT", screen_main);
 	combo = widget;
@@ -228,6 +278,151 @@ void settings_screen_setup(screen_t *scr) {
 	w->reservedChars = 6;
 	w->buttonWidget.selectable.tab = 2;
 	w->buttonWidget.action = &cancelContrast;
+
+
+	//Edit Diversity
+	diversity = systemSettings.diversity;
+	sc = oled_addScreen(screen_edit_diversity);
+	sc->draw = &default_screenDraw;
+	sc->processInput = &default_screenProcessInput;
+	sc->init = &default_init;
+	sc->update = &default_screenUpdate;
+
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_label);
+	s = "Diversity";
+	strcpy(w->displayString, s);
+	w->posX = 30;
+	w->posY = 0;
+	w->font_size = &FONT_8X14;
+	w->reservedChars = 9;
+
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_multi_option);
+	w->multiOptionWidget.options = onOff;
+	w->multiOptionWidget.numberOfOptions = 2;
+	w->multiOptionWidget.currentOption = systemSettings.diversity;
+	w->multiOptionWidget.defaultOption = 0;
+	w->multiOptionWidget.editable.inputData.getData = &getDiversity;
+	w->multiOptionWidget.editable.setData = (void (*)(void *))&setDiversity;
+	w->multiOptionWidget.editable.inputData.type = field_uinteger16;
+	w->multiOptionWidget.editable.big_step = 0;
+	w->editable.selectable.tab = 0;
+	w->posX = 50;
+	w->posY = 50;
+	w->font_size = &FONT_6X8;
+	w->reservedChars = 3;
+
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_button);
+	w->font_size = &FONT_6X8;
+	w->posX = 2;
+	w->posY = 56;
+	s = "SAVE";
+	strcpy(w->displayString, s);
+	w->reservedChars = 4;
+	w->buttonWidget.selectable.tab = 1;
+	w->buttonWidget.action = &saveDiversity;
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_button);
+	w->font_size = &FONT_6X8;
+	w->posX = 90;
+	w->posY = 56;
+	s = "CANCEL";
+	strcpy(w->displayString, s);
+	w->reservedChars = 6;
+	w->buttonWidget.selectable.tab = 2;
+	w->buttonWidget.action = &cancelDiversity;
+
+	///Edit SCAN
+	SCAN_START = systemSettings.start_scan_freq;
+	SCAN_END = systemSettings.end_scan_freq;
+	sc = oled_addScreen(screen_edit_scan);
+	sc->draw = &default_screenDraw;
+	sc->processInput = &default_screenProcessInput;
+	sc->init = &default_init;
+	sc->update = &default_screenUpdate;
+	w = screen_addWidget(sc);
+
+	widgetDefaultsInit(w, widget_label);
+	s = "SCAN";
+	strcpy(w->displayString, s);
+	w->posX = 50;
+	w->posY = 0;
+	w->font_size = &FONT_8X14;
+	w->reservedChars = 8;
+
+	w = screen_addWidget(sc);
+
+	widgetDefaultsInit(w, widget_label);
+	s = "Start:";
+	strcpy(w->displayString, s);
+	w->posX = 30;
+	w->posY = 17;
+	w->font_size = &FONT_6X8;
+	w->reservedChars = 6;
+
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_editable);
+	w->posX = 70;
+	w->posY = 17;
+	w->font_size = &FONT_6X8;
+	w->editable.inputData.getData = &getMinScan;
+	w->editable.inputData.number_of_dec = 0;
+	w->editable.inputData.type = field_uinteger32;
+	w->editable.big_step = 1000;
+	w->editable.step = 125;
+	w->editable.max_value = 2200000;//TODO
+	w->editable.min_value = 850000;
+	w->editable.selectable.tab = 0;
+	w->reservedChars = 9;
+	w->editable.setData = (void (*)(void *))&setMinScan;
+	w = screen_addWidget(sc);
+
+	widgetDefaultsInit(w, widget_label);
+	s = "  End:";
+	strcpy(w->displayString, s);
+	w->posX = 30;
+	w->posY = 27;
+	w->font_size = &FONT_6X8;
+	w->reservedChars = 6;
+
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_editable);
+	w->posX = 70;
+	w->posY = 27;
+	w->font_size = &FONT_6X8;
+	w->editable.inputData.getData = &getMaxScan;
+	w->editable.inputData.number_of_dec = 0;
+	w->editable.inputData.type = field_uinteger32;
+	w->editable.big_step = 1000;
+	w->editable.step = 125;
+	w->editable.max_value = 2200000;//TODO
+	w->editable.min_value = 850000;
+	w->editable.selectable.tab = 1;
+	w->reservedChars = 9;
+	w->editable.setData = (void (*)(void *))&setMaxScan;
+	w = screen_addWidget(sc);
+
+	widgetDefaultsInit(w, widget_button);
+	w->font_size = &FONT_6X8;
+	w->posX = 2;
+	w->posY = 56;
+	s = "SAVE";
+	strcpy(w->displayString, s);
+	w->reservedChars = 4;
+	w->buttonWidget.selectable.tab = 2;
+	w->buttonWidget.action = &saveScan;
+	w = screen_addWidget(sc);
+	widgetDefaultsInit(w, widget_button);
+	w->font_size = &FONT_6X8;
+	w->posX = 90;
+	w->posY = 56;
+	s = "CANCEL";
+	strcpy(w->displayString, s);
+	w->reservedChars = 6;
+	w->buttonWidget.selectable.tab = 3;
+	w->buttonWidget.action = &cancelScan;
 
 	//presets edit iron tips
 	sc = oled_addScreen(screen_edit_presets);

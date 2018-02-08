@@ -42,4 +42,8 @@ void resetSettings() {
 	systemSettings.used_channels = 1;
 	strcpy(systemSettings.channels[0].name, "DFLT");
 	systemSettings.channels[0].frequency = 1280000;
+	systemSettings.last_used_frequency = 1280000;
+	systemSettings.start_scan_freq = 850000;
+	systemSettings.end_scan_freq = 1350000;
+	systemSettings.diversity = 1;
 }

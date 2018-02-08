@@ -20,6 +20,8 @@ screen_t *oled_addScreen(uint8_t index) {
 	ret->next_screen = NULL;
 	ret->init = NULL;
 	ret->draw = NULL;
+	ret->onExit = NULL;
+	ret->onEnter = NULL;
 	ret->processInput = NULL;
 	ret->widgets = NULL;
 	ret->current_widget = NULL;
@@ -65,6 +67,10 @@ void oled_processInput(RE_Rotation_t input, RE_State_t *state) {
 		while(scr) {
 			if(scr->index == ret) {
 				UG_FillScreen(C_BLACK);
+				if(current_screen->onExit)
+					current_screen->onExit(scr);
+				if(scr->onEnter)
+					scr->onEnter(current_screen);
 				scr->init(scr);
 				if(scr->update)
 					scr->update(scr);

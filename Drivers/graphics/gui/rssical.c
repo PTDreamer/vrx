@@ -13,7 +13,7 @@
  */
 
 #include "rssical.h"
-#include "../../generalIO/adc_global.h"
+#include "../../generalIO/video_tunner.h"
 #include "../../graphics/gui/oled.h"
 #include "../../Src/settings.h"
 typedef enum {rssi_min, rssi_max, rssi_end}state_t;
@@ -26,15 +26,27 @@ static int cancelAction(widget_t* w) {
 }
 
 static int okAction(widget_t *w) {
+	uint32_t acu1 = 0, acu2 = 0;
 	if(current_state == rssi_min) {
-		systemSettings.rssi_min = rssi_adc_avg;
+		for(uint8_t x = 0; x < 10; ++x) {
+			acu1 += getRSSI_ADC();
+			acu2 += getRSSI2_ADC();
+		}
+		systemSettings.rssi_min = acu1 / 10;
+		systemSettings.rssi_min2 = acu2 / 10;
 		current_state = rssi_max;
 		saveSettings();
 		strcpy(infoStr, "Set RSSI max");
 		return -1;
 	}
-	systemSettings.rssi_max = rssi_adc_avg;
+	for(uint8_t x = 0; x < 10; ++x) {
+		acu1 += getRSSI_ADC();
+		acu2 += getRSSI2_ADC();
+	}
+	systemSettings.rssi_max = acu1 / 10;
+	systemSettings.rssi_max2 = acu2 / 10;
 	saveSettings();
+	tunnerReloadSettings();
 	return screen_main;
 }
 
